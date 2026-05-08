@@ -12,7 +12,7 @@ variable "project_name" {
 
 variable "image_tag" {
   type        = string
-  default     = "1.0.0-SNAPSHOT"
+  default     = "latest"
   description = "Tag of the image in ECR that the service should run."
 }
 
