@@ -36,6 +36,26 @@ docker run -i --rm -p 8080:8080 quarkus/getting-started-jvm
 docker run -d --rm -p 8080:8080 --name qs quarkus/getting-started:1.0.0-SNAPSHOT
 ```
 
+## push docker image to aws
+
+```shell script
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975049964252.dkr.ecr.us-east-1.amazonaws.com
+```
+
+```shell script
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.container-image.build=true
+```
+
+```shell script
+docker tag quarkus/getting-started:1.0.0-SNAPSHOT 975049964252.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+```
+
+```shell script
+docker push 975049964252.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+```
+
+
+
 ### Notes
 
 quarkus
