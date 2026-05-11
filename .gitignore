@@ -32,6 +32,15 @@ build/
 # TLS Certificates
 .certs/
 
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
 # Terraform
 .terraform/
 .terraform.lock.hcl
