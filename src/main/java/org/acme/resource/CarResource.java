@@ -47,7 +47,10 @@ public class CarResource {
         return new CarResponse(
                 car.id(),
                 car.make(),
-                car.model());
+                car.model(),
+                car.year(),
+                car.colour(),
+                car.mileage());
     }
 
 }

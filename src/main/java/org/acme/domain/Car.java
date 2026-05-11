@@ -1,5 +1,5 @@
 package org.acme.domain;
 
 public record Car(
-                String id, String make, String model) {
+                String id, String make, String model, int year, String colour, int mileage) {
 }

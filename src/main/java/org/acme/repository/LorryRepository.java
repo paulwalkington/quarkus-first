@@ -1,29 +1,23 @@
 package org.acme.repository;
 
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.*;
-
-import org.acme.domain.Lorry;
+import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
-public class LorryRepository {
+public class LorryRepository implements PanacheRepositoryBase<LorryEntity, String> {
 
-    private final Map<String, Lorry> lorries;
-
-    public LorryRepository() {
-        lorries = new HashMap<>();
+    public void addLorry(LorryEntity lorry) {
+        persist(lorry);
     }
 
-    public void addLorry(Lorry lorry) {
-        lorries.put(lorry.id(), lorry);
+    public List<LorryEntity> getLorries() {
+        return listAll();
     }
 
-    public List<Lorry> getLorries() {
-        return new ArrayList<>(lorries.values());
-    }
-
-    public Optional<Lorry> getLorry(String id) {
-        return Optional.ofNullable(lorries.get(id));
+    public Optional<LorryEntity> getLorry(String id) {
+        return findByIdOptional(id);
     }
 }

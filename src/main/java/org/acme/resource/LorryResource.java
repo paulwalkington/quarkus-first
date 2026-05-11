@@ -46,6 +46,9 @@ public class LorryResource {
         return new LorryResponse(
                 lorry.id(),
                 lorry.make(),
-                lorry.model());
+                lorry.model(),
+                lorry.year(),
+                lorry.colour(),
+                lorry.mileage());
     }
 }

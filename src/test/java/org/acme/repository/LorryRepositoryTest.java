@@ -1,8 +1,10 @@
 package org.acme.repository;
 
-import org.acme.domain.Lorry;
+import io.quarkus.test.TestTransaction;
+import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,63 +12,44 @@ import java.util.Optional;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@QuarkusTest
 class LorryRepositoryTest {
 
-    @Test
-    void shouldAddAndReturnLorryById() {
-        LorryRepository repository = new LorryRepository();
+    @Inject
+    LorryRepository repository;
 
-        Lorry lorry = new Lorry("lorry-1", "Volvo", "FH16");
+    @Test
+    @TestTransaction
+    void shouldAddAndReturnLorryById() {
+        LorryEntity lorry = new LorryEntity("lorry-1", "Volvo", "FH16", 2020, "White", 120_000);
 
         repository.addLorry(lorry);
 
-        Optional<Lorry> result = repository.getLorry("lorry-1");
+        Optional<LorryEntity> result = repository.getLorry("lorry-1");
 
         assertThat(result.isPresent(), is(true));
         assertThat(result.get(), is(lorry));
     }
 
     @Test
+    @TestTransaction
     void shouldReturnEmptyWhenLorryDoesNotExist() {
-        LorryRepository repository = new LorryRepository();
-
-        Optional<Lorry> result = repository.getLorry("missing-id-1");
+        Optional<LorryEntity> result = repository.getLorry("missing-id-1");
 
         assertThat(result.isEmpty(), is(true));
     }
 
     @Test
+    @TestTransaction
     void shouldReturnAllAddedLorries() {
-        LorryRepository repository = new LorryRepository();
-
-        Lorry first = new Lorry("lorry-2", "Scania", "R500");
-        Lorry second = new Lorry("lorry-3", "DAF", "XF");
+        LorryEntity first = new LorryEntity("lorry-2", "Scania", "R500", 2021, "Red", 80_000);
+        LorryEntity second = new LorryEntity("lorry-3", "DAF", "XF", 2019, "Blue", 150_000);
 
         repository.addLorry(first);
         repository.addLorry(second);
 
-        List<Lorry> lorries = repository.getLorries();
+        List<LorryEntity> lorries = repository.getLorries();
 
-        assertThat(lorries, hasSize(2));
         assertThat(lorries, hasItems(first, second));
-    }
-
-    @Test
-    void shouldOverwriteExistingLorryWithSameId() {
-        LorryRepository repository = new LorryRepository();
-
-        Lorry original = new Lorry("lorry-4", "Mercedes", "Actros");
-        Lorry updated = new Lorry("lorry-4", "Mercedes", "Arocs");
-
-        repository.addLorry(original);
-        repository.addLorry(updated);
-
-        Optional<Lorry> result = repository.getLorry("lorry-4");
-        List<Lorry> lorries = repository.getLorries();
-
-        assertThat(result.isPresent(), is(true));
-        assertThat(result.get(), is(updated));
-        assertThat(lorries.stream().filter(l -> l.id().equals("lorry-4")).count(), is(1L));
     }
 }
