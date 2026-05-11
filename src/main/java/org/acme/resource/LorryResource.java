@@ -42,6 +42,15 @@ public class LorryResource {
         return lorries.stream().map(this::transformToLorryResponse).toList();
     }
 
+    @DELETE
+    @Path("/{id}")
+    public RestResponse<Void> deleteLorry(@PathParam("id") String id) {
+        if (!service.deleteLorry(id)) {
+            return RestResponse.notFound();
+        }
+        return RestResponse.noContent();
+    }
+
     private LorryResponse transformToLorryResponse(Lorry lorry) {
         return new LorryResponse(
                 lorry.id(),

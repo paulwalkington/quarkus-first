@@ -20,4 +20,8 @@ public class LorryRepository implements PanacheRepositoryBase<LorryEntity, Strin
     public Optional<LorryEntity> getLorry(String id) {
         return findByIdOptional(id);
     }
+
+    public boolean deleteLorry(String id) {
+        return deleteById(id);
+    }
 }

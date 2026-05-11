@@ -43,6 +43,15 @@ public class CarResource {
         return cars.stream().map(this::transformToCarResponse).toList();
     }
 
+    @DELETE
+    @Path("/{id}")
+    public RestResponse<Void> deleteCar(String id) {
+        if (!service.deleteCar(id)) {
+            return RestResponse.notFound();
+        }
+        return RestResponse.noContent();
+    }
+
     private CarResponse transformToCarResponse(Car car) {
         return new CarResponse(
                 car.id(),

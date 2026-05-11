@@ -40,4 +40,9 @@ public class LorryService {
     public List<Lorry> getLorries() {
         return lorryRepository.getLorries().stream().map(LorryEntity::toDomain).toList();
     }
+
+    @Transactional
+    public boolean deleteLorry(String id) {
+        return lorryRepository.deleteLorry(id);
+    }
 }

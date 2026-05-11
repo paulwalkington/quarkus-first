@@ -20,4 +20,8 @@ public class CarRepository implements PanacheRepositoryBase<CarEntity, String> {
     public Optional<CarEntity> getCar(String id) {
         return findByIdOptional(id);
     }
+
+    public boolean deleteCar(String id) {
+        return deleteById(id);
+    }
 }

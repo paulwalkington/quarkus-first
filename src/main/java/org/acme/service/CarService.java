@@ -40,4 +40,9 @@ public class CarService {
     public List<Car> getCars() {
         return carRepository.getCars().stream().map(CarEntity::toDomain).toList();
     }
+
+    @Transactional
+    public boolean deleteCar(String id) {
+        return carRepository.deleteCar(id);
+    }
 }
