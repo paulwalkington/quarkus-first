@@ -1,6 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 import type { VehicleRequest } from '@/lib/api';
 
 interface Props {
@@ -33,61 +40,55 @@ export default function AddVehicleForm({ onAdd, onCancel }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Vehicle</h2>
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {(['make', 'model', 'colour'] as const).map(field => (
-          <label key={field} className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-600 capitalize">{field}</span>
-            <input
+    <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
+      <Typography variant="h6" gutterBottom>Add New Vehicle</Typography>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Box component="form" onSubmit={handleSubmit}>
+        <Grid container spacing={2}>
+          {(['make', 'model', 'colour'] as const).map(field => (
+            <Grid size={{ xs: 12, sm: 4 }} key={field}>
+              <TextField
+                required
+                fullWidth
+                label={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={form[field]}
+                onChange={set(field)}
+                size="small"
+              />
+            </Grid>
+          ))}
+          <Grid size={{ xs: 12, sm: 3 }}>
+            <TextField
               required
-              value={form[field]}
-              onChange={set(field)}
-              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              fullWidth
+              label="Year"
+              type="number"
+              slotProps={{ htmlInput: { min: 1900, max: 2100 } }}
+              value={form.year}
+              onChange={set('year')}
+              size="small"
             />
-          </label>
-        ))}
-        <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-gray-600">Year</span>
-          <input
-            required
-            type="number"
-            min={1900}
-            max={2100}
-            value={form.year}
-            onChange={set('year')}
-            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-gray-600">Mileage</span>
-          <input
-            required
-            type="number"
-            min={0}
-            value={form.mileage}
-            onChange={set('mileage')}
-            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </label>
-      </div>
-      <div className="flex gap-3 mt-5">
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white text-sm rounded font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? 'Saving…' : 'Save'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded font-medium hover:bg-gray-200 transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 3 }}>
+            <TextField
+              required
+              fullWidth
+              label="Mileage"
+              type="number"
+              slotProps={{ htmlInput: { min: 0 } }}
+              value={form.mileage}
+              onChange={set('mileage')}
+              size="small"
+            />
+          </Grid>
+        </Grid>
+        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+          <Button type="submit" variant="contained" disabled={saving}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+          <Button variant="text" onClick={onCancel}>Cancel</Button>
+        </Box>
+      </Box>
+    </Paper>
   );
 }

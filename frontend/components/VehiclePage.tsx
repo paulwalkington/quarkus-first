@@ -4,6 +4,21 @@ import { useEffect, useState, useCallback } from 'react';
 import { lorryApi, carApi } from '@/lib/api';
 import type { Vehicle, VehicleRequest } from '@/lib/api';
 import AddVehicleForm from './AddVehicleForm';
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Typography from '@mui/material/Typography';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 const apis = { lorries: lorryApi, cars: carApi };
 
@@ -53,70 +68,71 @@ export default function VehiclePage({ type, title }: Props) {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>{title}</Typography>
         {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            + Add {title.slice(0, -1)}
-          </button>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
+            Add {title.slice(0, -1)}
+          </Button>
         )}
-      </div>
+      </Box>
 
-      {showForm && (
-        <AddVehicleForm onAdd={handleAdd} onCancel={() => setShowForm(false)} />
+      {showForm && <AddVehicleForm onAdd={handleAdd} onCancel={() => setShowForm(false)} />}
+
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress />
+        </Box>
       )}
 
-      {loading && <p className="text-gray-400 text-sm">Loading…</p>}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
+        <Alert severity="error" action={<Button color="inherit" size="small" onClick={load}>Retry</Button>}>
           {error}
-          <button onClick={load} className="ml-3 underline">Retry</button>
-        </div>
+        </Alert>
       )}
 
       {!loading && !error && vehicles.length === 0 && (
-        <p className="text-gray-400 text-sm">No {title.toLowerCase()} found. Add one above.</p>
+        <Typography sx={{ color: 'text.secondary' }}>No {title.toLowerCase()} found. Add one above.</Typography>
       )}
 
       {vehicles.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                {['Make', 'Model', 'Year', 'Colour', 'Mileage', ''].map(h => (
-                  <th key={h} className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'grey.50' } }}>
+                <TableCell>Make</TableCell>
+                <TableCell>Model</TableCell>
+                <TableCell>Year</TableCell>
+                <TableCell>Colour</TableCell>
+                <TableCell>Mileage</TableCell>
+                <TableCell align="right" />
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {vehicles.map(v => (
-                <tr key={v.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-900 font-medium">{v.make}</td>
-                  <td className="px-4 py-3 text-gray-700">{v.model}</td>
-                  <td className="px-4 py-3 text-gray-700">{v.year}</td>
-                  <td className="px-4 py-3 text-gray-700 capitalize">{v.colour}</td>
-                  <td className="px-4 py-3 text-gray-700">{v.mileage.toLocaleString()} mi</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
+                <TableRow key={v.id} hover>
+                  <TableCell sx={{ fontWeight: 500 }}>{v.make}</TableCell>
+                  <TableCell>{v.model}</TableCell>
+                  <TableCell>{v.year}</TableCell>
+                  <TableCell sx={{ textTransform: 'capitalize' }}>{v.colour}</TableCell>
+                  <TableCell>{v.mileage.toLocaleString()} mi</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      size="small"
+                      color="error"
                       onClick={() => handleDelete(v.id)}
                       disabled={deleting === v.id}
-                      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-40 font-medium transition-colors"
                     >
-                      {deleting === v.id ? 'Deleting…' : 'Delete'}
-                    </button>
-                  </td>
-                </tr>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 }

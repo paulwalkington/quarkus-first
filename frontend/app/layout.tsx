@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Box from '@mui/material/Box';
+import NavBar from '@/components/NavBar';
+import theme from './theme';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,21 +15,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50">
-        <nav className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-6xl mx-auto px-4 flex items-center gap-8 h-14">
-            <Link href="/" className="text-lg font-bold text-gray-900 hover:text-blue-600">
-              Fleet Manager
-            </Link>
-            <Link href="/lorries" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
-              Lorries
-            </Link>
-            <Link href="/cars" className="text-sm text-gray-600 hover:text-blue-600 font-medium">
-              Cars
-            </Link>
-          </div>
-        </nav>
-        <main className="max-w-6xl mx-auto px-4 py-8">{children}</main>
+      <body>
+        <AppRouterCacheProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <NavBar />
+            <Box component="main" sx={{ maxWidth: 1100, mx: 'auto', px: 3, py: 4 }}>
+              {children}
+            </Box>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );
