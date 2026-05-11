@@ -20,3 +20,8 @@ output "cluster_name" {
 output "service_name" {
   value = aws_ecs_service.app.name
 }
+
+output "rds_endpoint" {
+  value       = aws_db_instance.main.address
+  description = "RDS Postgres address. Only reachable from inside the VPC."
+}

@@ -48,6 +48,19 @@ resource "aws_iam_role_policy_attachment" "task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_iam_policy_document" "task_execution_secrets" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_secretsmanager_secret.db_password.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "task_execution_secrets" {
+  name   = "${var.project_name}-task-execution-secrets"
+  role   = aws_iam_role.task_execution.id
+  policy = data.aws_iam_policy_document.task_execution_secrets.json
+}
+
 resource "aws_iam_role" "task" {
   name               = "${var.project_name}-task"
   assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume.json
@@ -78,6 +91,24 @@ resource "aws_ecs_task_definition" "app" {
         containerPort = 8080
         protocol      = "tcp"
       }]
+
+      environment = [
+        {
+          name  = "QUARKUS_DATASOURCE_JDBC_URL"
+          value = "jdbc:postgresql://${aws_db_instance.main.address}:${aws_db_instance.main.port}/${aws_db_instance.main.db_name}"
+        },
+        {
+          name  = "QUARKUS_DATASOURCE_USERNAME"
+          value = "quarkus"
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "QUARKUS_DATASOURCE_PASSWORD"
+          valueFrom = aws_secretsmanager_secret.db_password.arn
+        }
+      ]
 
       logConfiguration = {
         logDriver = "awslogs"
