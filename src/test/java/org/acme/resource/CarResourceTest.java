@@ -134,4 +134,59 @@ class CarResourceTest {
                 .then()
                 .statusCode(404);
     }
+
+    @Test
+    void updateCarReturnsUpdatedCar() {
+        String id = given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "Nissan",
+                          "model": "Micra",
+                          "year": 2018,
+                          "colour": "Silver",
+                          "mileage": 60000
+                        }
+                        """)
+                .when().post("/cars")
+                .then()
+                .statusCode(200)
+                .extract().path("id");
+
+        given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "Nissan",
+                          "model": "Micra",
+                          "year": 2018,
+                          "colour": "Blue",
+                          "mileage": 65000
+                        }
+                        """)
+                .when().put("/cars/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("id", equalTo(id))
+                .body("colour", equalTo("Blue"))
+                .body("mileage", equalTo(65000));
+    }
+
+    @Test
+    void updateUnknownCarReturns404() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "Kia",
+                          "model": "Ceed",
+                          "year": 2020,
+                          "colour": "Green",
+                          "mileage": 30000
+                        }
+                        """)
+                .when().put("/cars/{id}", UUID.randomUUID().toString())
+                .then()
+                .statusCode(404);
+    }
 }

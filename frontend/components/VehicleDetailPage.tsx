@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { lorryApi, carApi } from '@/lib/api';
-import type { Vehicle } from '@/lib/api';
+import type { Vehicle, VehicleRequest } from '@/lib/api';
+import AddVehicleForm from './AddVehicleForm';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,6 +14,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const apis = { lorries: lorryApi, cars: carApi };
 
@@ -42,6 +44,7 @@ export default function VehicleDetailPage({ type, id }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     api.getById(id)
@@ -60,6 +63,12 @@ export default function VehicleDetailPage({ type, id }: Props) {
       alert(err instanceof Error ? err.message : 'Delete failed');
       setDeleting(false);
     }
+  };
+
+  const handleUpdate = async (data: VehicleRequest) => {
+    const updated = await api.update(id, data);
+    setVehicle(updated);
+    setEditing(false);
   };
 
   const singularLabel = type === 'lorries' ? 'Lorry' : 'Car';
@@ -88,30 +97,49 @@ export default function VehicleDetailPage({ type, id }: Props) {
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {vehicle.year} {vehicle.make} {vehicle.model}
             </Typography>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              Delete {singularLabel}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<EditIcon />}
+                onClick={() => setEditing(e => !e)}
+              >
+                {editing ? 'Cancel Edit' : `Edit ${singularLabel}`}
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                Delete {singularLabel}
+              </Button>
+            </Box>
           </Box>
 
-          <Paper variant="outlined" sx={{ px: 3, py: 1 }}>
-            <DetailRow label="Make" value={vehicle.make} />
-            <Divider />
-            <DetailRow label="Model" value={vehicle.model} />
-            <Divider />
-            <DetailRow label="Year" value={vehicle.year} />
-            <Divider />
-            <DetailRow label="Colour" value={vehicle.colour} />
-            <Divider />
-            <DetailRow label="Mileage" value={`${vehicle.mileage.toLocaleString()} mi`} />
-            <Divider />
-            <DetailRow label="ID" value={vehicle.id} />
-          </Paper>
+          {editing && (
+            <AddVehicleForm
+              onSubmit={handleUpdate}
+              onCancel={() => setEditing(false)}
+              initialValues={{ make: vehicle.make, model: vehicle.model, year: vehicle.year, colour: vehicle.colour, mileage: vehicle.mileage }}
+            />
+          )}
+
+          {!editing && (
+            <Paper variant="outlined" sx={{ px: 3, py: 1 }}>
+              <DetailRow label="Make" value={vehicle.make} />
+              <Divider />
+              <DetailRow label="Model" value={vehicle.model} />
+              <Divider />
+              <DetailRow label="Year" value={vehicle.year} />
+              <Divider />
+              <DetailRow label="Colour" value={vehicle.colour} />
+              <Divider />
+              <DetailRow label="Mileage" value={`${vehicle.mileage.toLocaleString()} mi`} />
+              <Divider />
+              <DetailRow label="ID" value={vehicle.id} />
+            </Paper>
+          )}
         </>
       )}
     </Box>

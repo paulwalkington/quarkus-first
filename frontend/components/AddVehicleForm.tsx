@@ -11,14 +11,15 @@ import Alert from '@mui/material/Alert';
 import type { VehicleRequest } from '@/lib/api';
 
 interface Props {
-  onAdd: (data: VehicleRequest) => Promise<void>;
+  onSubmit: (data: VehicleRequest) => Promise<void>;
   onCancel: () => void;
+  initialValues?: VehicleRequest;
 }
 
 const empty: VehicleRequest = { make: '', model: '', year: new Date().getFullYear(), colour: '', mileage: 0 };
 
-export default function AddVehicleForm({ onAdd, onCancel }: Props) {
-  const [form, setForm] = useState<VehicleRequest>(empty);
+export default function AddVehicleForm({ onSubmit, onCancel, initialValues }: Props) {
+  const [form, setForm] = useState<VehicleRequest>(initialValues ?? empty);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +31,7 @@ export default function AddVehicleForm({ onAdd, onCancel }: Props) {
     setSaving(true);
     setError(null);
     try {
-      await onAdd(form);
+      await onSubmit(form);
       setForm(empty);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
@@ -39,9 +40,11 @@ export default function AddVehicleForm({ onAdd, onCancel }: Props) {
     }
   };
 
+  const isEdit = !!initialValues;
+
   return (
     <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" gutterBottom>Add New Vehicle</Typography>
+      <Typography variant="h6" gutterBottom>{isEdit ? 'Edit Vehicle' : 'Add New Vehicle'}</Typography>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Box component="form" onSubmit={handleSubmit}>
         <Grid container spacing={2}>
@@ -84,7 +87,7 @@ export default function AddVehicleForm({ onAdd, onCancel }: Props) {
         </Grid>
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
           <Button type="submit" variant="contained" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving…' : isEdit ? 'Update' : 'Save'}
           </Button>
           <Button variant="text" onClick={onCancel}>Cancel</Button>
         </Box>

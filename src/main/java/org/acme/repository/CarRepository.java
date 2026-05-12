@@ -24,4 +24,15 @@ public class CarRepository implements PanacheRepositoryBase<CarEntity, String> {
     public boolean deleteCar(String id) {
         return deleteById(id);
     }
+
+    public Optional<CarEntity> updateCar(String id, String make, String model, int year, String colour, int mileage) {
+        return findByIdOptional(id).map(entity -> {
+            entity.setMake(make);
+            entity.setModel(model);
+            entity.setYear(year);
+            entity.setColour(colour);
+            entity.setMileage(mileage);
+            return entity;
+        });
+    }
 }

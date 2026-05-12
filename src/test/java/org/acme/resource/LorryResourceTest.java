@@ -134,4 +134,59 @@ class LorryResourceTest {
                 .then()
                 .statusCode(404);
     }
+
+    @Test
+    void updateLorryReturnsUpdatedLorry() {
+        String id = given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "MAN",
+                          "model": "TGX",
+                          "year": 2019,
+                          "colour": "Grey",
+                          "mileage": 200000
+                        }
+                        """)
+                .when().post("/lorries")
+                .then()
+                .statusCode(200)
+                .extract().path("id");
+
+        given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "MAN",
+                          "model": "TGX",
+                          "year": 2019,
+                          "colour": "White",
+                          "mileage": 210000
+                        }
+                        """)
+                .when().put("/lorries/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("id", equalTo(id))
+                .body("colour", equalTo("White"))
+                .body("mileage", equalTo(210000));
+    }
+
+    @Test
+    void updateUnknownLorryReturns404() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        {
+                          "make": "Iveco",
+                          "model": "Stralis",
+                          "year": 2021,
+                          "colour": "Red",
+                          "mileage": 50000
+                        }
+                        """)
+                .when().put("/lorries/{id}", UUID.randomUUID().toString())
+                .then()
+                .statusCode(404);
+    }
 }

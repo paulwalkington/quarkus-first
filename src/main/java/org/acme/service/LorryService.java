@@ -45,4 +45,10 @@ public class LorryService {
     public boolean deleteLorry(String id) {
         return lorryRepository.deleteLorry(id);
     }
+
+    @Transactional
+    public Optional<Lorry> updateLorry(String id, LorryRequest lorryRequest) {
+        return lorryRepository.updateLorry(id, lorryRequest.make(), lorryRequest.model(), lorryRequest.year(), lorryRequest.colour(), lorryRequest.mileage())
+                .map(LorryEntity::toDomain);
+    }
 }

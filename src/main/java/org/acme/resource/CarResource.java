@@ -43,6 +43,18 @@ public class CarResource {
         return cars.stream().map(this::transformToCarResponse).toList();
     }
 
+    @PUT
+    @Path("/{id}")
+    public RestResponse<CarResponse> updateCar(String id, CarRequest carRequest) {
+        Optional<Car> car = service.updateCar(id, carRequest);
+
+        if (car.isEmpty()) {
+            return RestResponse.notFound();
+        }
+
+        return RestResponse.ok(transformToCarResponse(car.get()));
+    }
+
     @DELETE
     @Path("/{id}")
     public RestResponse<Void> deleteCar(String id) {

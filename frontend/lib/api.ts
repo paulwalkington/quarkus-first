@@ -33,6 +33,12 @@ export const lorryApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }),
+  update: (id: string, data: VehicleRequest) =>
+    request<Vehicle>(`/lorries/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
   delete: (id: string) => request<void>(`/lorries/${id}`, { method: 'DELETE' }),
 };
 
@@ -42,6 +48,12 @@ export const carApi = {
   create: (data: VehicleRequest) =>
     request<Vehicle>('/cars', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+  update: (id: string, data: VehicleRequest) =>
+    request<Vehicle>(`/cars/${id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }),

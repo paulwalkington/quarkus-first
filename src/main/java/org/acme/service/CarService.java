@@ -45,4 +45,10 @@ public class CarService {
     public boolean deleteCar(String id) {
         return carRepository.deleteCar(id);
     }
+
+    @Transactional
+    public Optional<Car> updateCar(String id, CarRequest carRequest) {
+        return carRepository.updateCar(id, carRequest.make(), carRequest.model(), carRequest.year(), carRequest.colour(), carRequest.mileage())
+                .map(CarEntity::toDomain);
+    }
 }

@@ -43,4 +43,10 @@ public class CarEntity {
     public Car toDomain() {
         return new Car(id, make, model, year, colour, mileage);
     }
+
+    public void setMake(String make) { this.make = make; }
+    public void setModel(String model) { this.model = model; }
+    public void setYear(int year) { this.year = year; }
+    public void setColour(String colour) { this.colour = colour; }
+    public void setMileage(int mileage) { this.mileage = mileage; }
 }

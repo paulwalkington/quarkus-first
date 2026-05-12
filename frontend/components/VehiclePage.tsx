@@ -86,7 +86,7 @@ export default function VehiclePage({ type, title }: Props) {
         )}
       </Box>
 
-      {showForm && <AddVehicleForm onAdd={handleAdd} onCancel={() => setShowForm(false)} />}
+      {showForm && <AddVehicleForm onSubmit={handleAdd} onCancel={() => setShowForm(false)} />}
 
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
