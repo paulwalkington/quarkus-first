@@ -20,6 +20,8 @@ import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import Link from 'next/link';
 
 const apis = { lorries: lorryApi, cars: carApi };
 
@@ -80,9 +82,14 @@ export default function VehiclePage({ type, title }: Props) {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>{title}</Typography>
         {!showForm && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
-            Add {addLabel}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button variant="outlined" startIcon={<SearchIcon />} component={Link} href={`/${type}/search`}>
+              Search
+            </Button>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
+              Add {addLabel}
+            </Button>
+          </Box>
         )}
       </Box>
 
