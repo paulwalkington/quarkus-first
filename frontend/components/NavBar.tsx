@@ -19,9 +19,7 @@ export default function NavBar() {
           Fleet Manager
         </Typography>
         <Button color="inherit" component={Link} href="/lorries">Lorries</Button>
-        <Button color="inherit" component={Link} href="/lorries/search" size="small" sx={{ opacity: 0.8 }}>Search Lorries</Button>
         <Button color="inherit" component={Link} href="/cars">Cars</Button>
-        <Button color="inherit" component={Link} href="/cars/search" size="small" sx={{ opacity: 0.8 }}>Search Cars</Button>
       </Toolbar>
     </AppBar>
   );
