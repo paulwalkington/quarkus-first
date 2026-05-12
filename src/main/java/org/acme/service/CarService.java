@@ -51,4 +51,9 @@ public class CarService {
         return carRepository.updateCar(id, carRequest.make(), carRequest.model(), carRequest.year(), carRequest.colour(), carRequest.mileage())
                 .map(CarEntity::toDomain);
     }
+
+    public List<Car> searchCars(String make, String model, Integer year, String colour, Integer maxMileage) {
+        return carRepository.searchCars(make, model, year, colour, maxMileage)
+                .stream().map(CarEntity::toDomain).toList();
+    }
 }

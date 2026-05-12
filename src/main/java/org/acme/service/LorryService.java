@@ -51,4 +51,9 @@ public class LorryService {
         return lorryRepository.updateLorry(id, lorryRequest.make(), lorryRequest.model(), lorryRequest.year(), lorryRequest.colour(), lorryRequest.mileage())
                 .map(LorryEntity::toDomain);
     }
+
+    public List<Lorry> searchLorries(String make, String model, Integer year, String colour, Integer maxMileage) {
+        return lorryRepository.searchLorries(make, model, year, colour, maxMileage)
+                .stream().map(LorryEntity::toDomain).toList();
+    }
 }

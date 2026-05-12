@@ -1,5 +1,13 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
+export interface SearchParams {
+  make?: string;
+  model?: string;
+  year?: number;
+  colour?: string;
+  maxMileage?: number;
+}
+
 export interface Vehicle {
   id: string;
   make: string;
@@ -24,9 +32,20 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+function buildSearchQuery(params: SearchParams): string {
+  const q = new URLSearchParams();
+  if (params.make) q.set('make', params.make);
+  if (params.model) q.set('model', params.model);
+  if (params.year) q.set('year', String(params.year));
+  if (params.colour) q.set('colour', params.colour);
+  if (params.maxMileage) q.set('maxMileage', String(params.maxMileage));
+  return q.toString();
+}
+
 export const lorryApi = {
   getAll: () => request<Vehicle[]>('/lorries'),
   getById: (id: string) => request<Vehicle>(`/lorries/${id}`),
+  search: (params: SearchParams) => request<Vehicle[]>(`/lorries/search?${buildSearchQuery(params)}`),
   create: (data: VehicleRequest) =>
     request<Vehicle>('/lorries', {
       method: 'POST',
@@ -45,6 +64,7 @@ export const lorryApi = {
 export const carApi = {
   getAll: () => request<Vehicle[]>('/cars'),
   getById: (id: string) => request<Vehicle>(`/cars/${id}`),
+  search: (params: SearchParams) => request<Vehicle[]>(`/cars/search?${buildSearchQuery(params)}`),
   create: (data: VehicleRequest) =>
     request<Vehicle>('/cars', {
       method: 'POST',

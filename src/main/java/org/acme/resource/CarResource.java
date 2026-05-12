@@ -43,6 +43,18 @@ public class CarResource {
         return cars.stream().map(this::transformToCarResponse).toList();
     }
 
+    @GET
+    @Path("/search")
+    public List<CarResponse> searchCars(
+            @QueryParam("make") String make,
+            @QueryParam("model") String model,
+            @QueryParam("year") Integer year,
+            @QueryParam("colour") String colour,
+            @QueryParam("maxMileage") Integer maxMileage) {
+        return service.searchCars(make, model, year, colour, maxMileage)
+                .stream().map(this::transformToCarResponse).toList();
+    }
+
     @PUT
     @Path("/{id}")
     public RestResponse<CarResponse> updateCar(String id, CarRequest carRequest) {

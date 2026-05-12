@@ -42,6 +42,18 @@ public class LorryResource {
         return lorries.stream().map(this::transformToLorryResponse).toList();
     }
 
+    @GET
+    @Path("/search")
+    public List<LorryResponse> searchLorries(
+            @QueryParam("make") String make,
+            @QueryParam("model") String model,
+            @QueryParam("year") Integer year,
+            @QueryParam("colour") String colour,
+            @QueryParam("maxMileage") Integer maxMileage) {
+        return service.searchLorries(make, model, year, colour, maxMileage)
+                .stream().map(this::transformToLorryResponse).toList();
+    }
+
     @PUT
     @Path("/{id}")
     public RestResponse<LorryResponse> updateLorry(@PathParam("id") String id, LorryRequest lorryRequest) {
