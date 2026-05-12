@@ -34,7 +34,24 @@ resource "aws_lb_target_group" "app" {
   target_type = "ip"
 
   health_check {
-    path                = "/q/health/live"
+    path                = "/api/q/health/live"
+    matcher             = "200"
+    interval            = 15
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 3
+  }
+}
+
+resource "aws_lb_target_group" "frontend" {
+  name        = "${var.project_name}-frontend-tg"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/"
     matcher             = "200"
     interval            = 15
     timeout             = 5
@@ -59,13 +76,38 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-resource "aws_lb_listener_rule" "from_cloudfront" {
+# /api/* → Quarkus backend
+resource "aws_lb_listener_rule" "api" {
   listener_arn = aws_lb_listener.http.arn
-  priority     = 1
+  priority     = 10
 
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = local.origin_verify_header
+      values           = [random_password.origin_verify.result]
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/*"]
+    }
+  }
+}
+
+# /* → Next.js frontend (catch-all for verified CloudFront requests)
+resource "aws_lb_listener_rule" "frontend" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.frontend.arn
   }
 
   condition {

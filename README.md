@@ -27,7 +27,8 @@ docker run -i --rm -p 8080:8080 quarkus/getting-started-jvm
 ### build a native image
 
 ```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.container-image.build=true
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+  docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
 ```
 
 ### run with docker
@@ -39,19 +40,20 @@ docker run -d --rm -p 8080:8080 --name qs quarkus/getting-started:1.0.0-SNAPSHOT
 ## push docker image to aws
 
 ```shell script
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975049964252.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 331374384642.dkr.ecr.us-east-1.amazonaws.com
 ```
 
 ```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.container-image.build=true
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+  docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
 ```
 
 ```shell script
-docker tag quarkus/getting-started:1.0.0-SNAPSHOT 975049964252.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+docker tag getting-started:latest 331374384642.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
 ```
 
 ```shell script
-docker push 975049964252.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+docker push 331374384642.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
 ```
 
 

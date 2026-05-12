@@ -95,7 +95,7 @@ resource "aws_ecs_task_definition" "app" {
       environment = [
         {
           name  = "QUARKUS_DATASOURCE_JDBC_URL"
-          value = "jdbc:postgresql://${aws_db_instance.main.address}:${aws_db_instance.main.port}/${aws_db_instance.main.db_name}"
+          value = "jdbc:postgresql://${aws_rds_cluster.main.endpoint}:${aws_rds_cluster.main.port}/${aws_rds_cluster.main.database_name}"
         },
         {
           name  = "QUARKUS_DATASOURCE_USERNAME"

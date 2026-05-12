@@ -39,25 +39,30 @@ resource "aws_security_group" "db" {
   }
 }
 
-resource "aws_db_instance" "main" {
-  identifier             = "${var.project_name}-db"
-  engine                 = "postgres"
-  engine_version         = "16"
-  instance_class         = "db.t4g.micro"
-  allocated_storage      = 20
-  storage_type           = "gp3"
-  storage_encrypted      = true
-  db_name                = "quarkus"
-  username               = "quarkus"
-  password               = random_password.db.result
+resource "aws_rds_cluster" "main" {
+  cluster_identifier     = "${var.project_name}-db"
+  engine                 = "aurora-postgresql"
+  engine_version         = "16.6"
+  database_name          = "quarkus"
+  master_username        = "quarkus"
+  master_password        = random_password.db.result
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.db.id]
-  publicly_accessible    = false
-  multi_az               = false
+  storage_encrypted      = true
 
   # Dev-friendly: easy to tear down. Tighten these before going to prod.
   skip_final_snapshot     = true
-  backup_retention_period = 0
+  backup_retention_period = 1
   deletion_protection     = false
   apply_immediately       = true
+}
+
+resource "aws_rds_cluster_instance" "main" {
+  identifier           = "${var.project_name}-db-1"
+  cluster_identifier   = aws_rds_cluster.main.id
+  instance_class       = "db.t4g.medium"
+  engine               = aws_rds_cluster.main.engine
+  engine_version       = aws_rds_cluster.main.engine_version
+  db_subnet_group_name = aws_db_subnet_group.main.name
+  apply_immediately    = true
 }

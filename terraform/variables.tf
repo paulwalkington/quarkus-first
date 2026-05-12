@@ -31,3 +31,9 @@ variable "task_memory" {
   type    = number
   default = 512
 }
+
+variable "frontend_image_tag" {
+  type        = string
+  default     = "latest"
+  description = "Tag of the frontend image in ECR that the service should run."
+}

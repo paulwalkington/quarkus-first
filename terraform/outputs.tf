@@ -21,7 +21,16 @@ output "service_name" {
   value = aws_ecs_service.app.name
 }
 
-output "rds_endpoint" {
-  value       = aws_db_instance.main.address
-  description = "RDS Postgres address. Only reachable from inside the VPC."
+output "aurora_endpoint" {
+  value       = aws_rds_cluster.main.endpoint
+  description = "Aurora cluster writer endpoint. Only reachable from inside the VPC."
+}
+
+output "frontend_ecr_repository_url" {
+  value       = aws_ecr_repository.frontend.repository_url
+  description = "Push the frontend image here before tasks can start."
+}
+
+output "frontend_service_name" {
+  value = aws_ecs_service.frontend.name
 }
