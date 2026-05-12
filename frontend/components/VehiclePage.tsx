@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { lorryApi, carApi } from '@/lib/api';
 import type { Vehicle, VehicleRequest } from '@/lib/api';
 import AddVehicleForm from './AddVehicleForm';
+import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -61,6 +62,7 @@ export default function VehiclePage({ type, title }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [filter, setFilter] = useState(emptyFilter);
 
   const load = useCallback(async () => {
@@ -83,15 +85,17 @@ export default function VehiclePage({ type, title }: Props) {
     setShowForm(false);
   };
 
-  const handleDelete = async (id: string) => {
-    setDeleting(id);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(deleteTarget);
     try {
-      await api.delete(id);
-      setVehicles(prev => prev.filter(v => v.id !== id));
+      await api.delete(deleteTarget);
+      setVehicles(prev => prev.filter(v => v.id !== deleteTarget));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       setDeleting(null);
+      setDeleteTarget(null);
     }
   };
 
@@ -270,7 +274,7 @@ export default function VehiclePage({ type, title }: Props) {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={e => { e.stopPropagation(); handleDelete(v.id); }}
+                          onClick={e => { e.stopPropagation(); setDeleteTarget(v.id); }}
                           disabled={deleting === v.id}
                         >
                           <DeleteIcon fontSize="small" />
@@ -284,6 +288,19 @@ export default function VehiclePage({ type, title }: Props) {
           )}
         </>
       )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        title={`Delete ${addLabel}?`}
+        description={(() => {
+          const v = vehicles.find(v => v.id === deleteTarget);
+          return v
+            ? `This will permanently delete the ${v.year} ${v.make} ${v.model}. This action cannot be undone.`
+            : 'This action cannot be undone.';
+        })()}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={!!deleting}
+      />
     </Box>
   );
 }
