@@ -26,6 +26,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const lorryApi = {
   getAll: () => request<Vehicle[]>('/lorries'),
+  getById: (id: string) => request<Vehicle>(`/lorries/${id}`),
   create: (data: VehicleRequest) =>
     request<Vehicle>('/lorries', {
       method: 'POST',
@@ -37,6 +38,7 @@ export const lorryApi = {
 
 export const carApi = {
   getAll: () => request<Vehicle[]>('/cars'),
+  getById: (id: string) => request<Vehicle>(`/cars/${id}`),
   create: (data: VehicleRequest) =>
     request<Vehicle>('/cars', {
       method: 'POST',

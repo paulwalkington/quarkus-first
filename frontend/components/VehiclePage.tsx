@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { lorryApi, carApi } from '@/lib/api';
 import type { Vehicle, VehicleRequest } from '@/lib/api';
 import AddVehicleForm from './AddVehicleForm';
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function VehiclePage({ type, title }: Props) {
+  const router = useRouter();
   const api = apis[type];
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,13 +69,19 @@ export default function VehiclePage({ type, title }: Props) {
     }
   };
 
+  let addLabel: string;
+  switch (type) {
+    case 'lorries': addLabel = 'Lorry'; break;
+    default: addLabel = title.slice(0, -1);
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>{title}</Typography>
         {!showForm && (
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
-            Add {title.slice(0, -1)}
+            Add {addLabel}
           </Button>
         )}
       </Box>
@@ -111,7 +119,12 @@ export default function VehiclePage({ type, title }: Props) {
             </TableHead>
             <TableBody>
               {vehicles.map(v => (
-                <TableRow key={v.id} hover>
+                <TableRow
+                  key={v.id}
+                  hover
+                  onClick={() => router.push(`/${type}/${v.id}`)}
+                  sx={{ cursor: 'pointer' }}
+                >
                   <TableCell sx={{ fontWeight: 500 }}>{v.make}</TableCell>
                   <TableCell>{v.model}</TableCell>
                   <TableCell>{v.year}</TableCell>
@@ -121,7 +134,7 @@ export default function VehiclePage({ type, title }: Props) {
                     <IconButton
                       size="small"
                       color="error"
-                      onClick={() => handleDelete(v.id)}
+                      onClick={e => { e.stopPropagation(); handleDelete(v.id); }}
                       disabled={deleting === v.id}
                     >
                       <DeleteIcon fontSize="small" />
