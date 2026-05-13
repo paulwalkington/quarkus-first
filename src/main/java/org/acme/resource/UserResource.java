@@ -16,6 +16,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,6 +25,7 @@ import org.acme.resource.request.CreateUserRequest;
 import org.acme.resource.request.LoginRequest;
 import org.acme.resource.request.UpdateProfilePictureRequest;
 import org.acme.resource.response.TokenResponse;
+import org.acme.resource.response.UserResponse;
 import org.acme.service.UserService;
 
 @Path("/auth")
@@ -35,6 +37,17 @@ public class UserResource {
 
     @Inject
     UserResponseTransformer transformer;
+
+    @GET
+    @Path("/users")
+    @RolesAllowed("admin")
+    public Response listUsers() {
+        List<UserResponse> users = userService.listAllUsers()
+                .stream()
+                .map(transformer::toUserResponse)
+                .toList();
+        return Response.ok(users).build();
+    }
 
     @GET
     @Path("/me")

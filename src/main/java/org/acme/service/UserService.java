@@ -10,6 +10,7 @@ import org.acme.repository.UserEntity;
 import org.acme.repository.UserRepository;
 import org.acme.resource.request.CreateUserRequest;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,10 @@ public class UserService {
         entity.role = request.role();
         userRepository.persist(entity);
         return entity.toDomain();
+    }
+
+    public List<User> listAllUsers() {
+        return userRepository.listAll().stream().map(UserEntity::toDomain).toList();
     }
 
     public Optional<User> getUserByUsername(String username) {

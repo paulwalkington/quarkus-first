@@ -33,7 +33,7 @@ export default function NavBar() {
         <Button color="inherit" component={Link} href="/lorries">Lorries</Button>
         <Button color="inherit" component={Link} href="/cars">Cars</Button>
         {isAuthenticated && role === 'admin' && (
-          <Button color="inherit" component={Link} href="/admin/users">Add User</Button>
+          <Button color="inherit" component={Link} href="/admin/users/list">Users</Button>
         )}
 
         <Box sx={{ flexGrow: 1 }} />

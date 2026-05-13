@@ -88,6 +88,7 @@ export const userApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }),
+  listAll: () => request<User[]>('/auth/users'),
 };
 
 export async function loginApi(username: string, password: string): Promise<string> {
