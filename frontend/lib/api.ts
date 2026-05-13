@@ -89,6 +89,13 @@ export const userApi = {
       body: JSON.stringify(data),
     }),
   listAll: () => request<User[]>('/auth/users'),
+  delete: (id: string) => request<void>(`/auth/users/${id}`, { method: 'DELETE' }),
+  update: (id: string, data: { username: string; role: string; password?: string }) =>
+    request<User>(`/auth/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
 };
 
 export async function loginApi(username: string, password: string): Promise<string> {

@@ -9,6 +9,7 @@ import org.acme.domain.User;
 import org.acme.repository.UserEntity;
 import org.acme.repository.UserRepository;
 import org.acme.resource.request.CreateUserRequest;
+import org.acme.resource.request.UpdateUserRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +47,26 @@ public class UserService {
             return Optional.empty();
         }
         return Optional.of(entity.toDomain());
+    }
+
+    @Transactional
+    public Optional<User> updateUser(String id, UpdateUserRequest request) {
+        UserEntity entity = userRepository.findById(id);
+        if (entity == null) {
+            return Optional.empty();
+        }
+        entity.username = request.username();
+        entity.role = request.role();
+        if (request.password() != null && !request.password().isBlank()) {
+            entity.password = BCrypt.withDefaults().hashToString(12, request.password().toCharArray());
+        }
+        userRepository.persist(entity);
+        return Optional.of(entity.toDomain());
+    }
+
+    @Transactional
+    public boolean deleteUser(String id) {
+        return userRepository.deleteById(id);
     }
 
     @Transactional
