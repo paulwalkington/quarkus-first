@@ -68,6 +68,12 @@ function buildSearchQuery(params: SearchParams): string {
   return q.toString();
 }
 
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  role: string;
+}
+
 export const userApi = {
   getMe: () => request<User>('/auth/me'),
   uploadPicture: (profilePicture: string) =>
@@ -75,6 +81,12 @@ export const userApi = {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profilePicture }),
+    }),
+  register: (data: CreateUserRequest) =>
+    request<User>('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     }),
 };
 
