@@ -3,21 +3,21 @@
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import RoleChip from '@/components/RoleChip';
 
 export default function NavBar() {
   const { isAuthenticated, username, role, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
+  function handleLogout() {
     logout();
     router.push('/login');
-  };
+  }
 
   return (
     <AppBar position="static" elevation={1}>
@@ -30,6 +30,7 @@ export default function NavBar() {
         >
           Fleet Manager
         </Typography>
+
         <Button color="inherit" component={Link} href="/lorries">Lorries</Button>
         <Button color="inherit" component={Link} href="/cars">Cars</Button>
         {isAuthenticated && role === 'admin' && (
@@ -40,16 +41,7 @@ export default function NavBar() {
 
         {isAuthenticated && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Chip
-              label={role === 'admin' ? 'Admin' : 'User'}
-              size="small"
-              sx={{
-                bgcolor: role === 'admin' ? 'warning.main' : 'success.main',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: '0.7rem',
-              }}
-            />
+            <RoleChip role={role ?? 'user'} />
             <Typography
               variant="body2"
               component={Link}
@@ -58,9 +50,7 @@ export default function NavBar() {
             >
               {username}
             </Typography>
-            <Button color="inherit" size="small" onClick={handleLogout}>
-              Logout
-            </Button>
+            <Button color="inherit" size="small" onClick={handleLogout}>Logout</Button>
           </Box>
         )}
       </Toolbar>

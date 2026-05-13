@@ -7,7 +7,7 @@ import { userApi, User } from '@/lib/api';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
+import RoleChip from '@/components/RoleChip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -65,11 +65,7 @@ function UserRow({ user, onEdit, onDelete }: {
         <Typography variant="body2" sx={{ fontWeight: 500 }}>{user.username}</Typography>
       </TableCell>
       <TableCell>
-        <Chip
-          label={isAdmin ? 'Admin' : 'User'}
-          size="small"
-          sx={{ bgcolor: isAdmin ? 'warning.main' : 'success.main', color: 'white', fontWeight: 700, fontSize: '0.7rem' }}
-        />
+        <RoleChip role={user.role} />
       </TableCell>
       <TableCell>
         <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'text.secondary' }}>
