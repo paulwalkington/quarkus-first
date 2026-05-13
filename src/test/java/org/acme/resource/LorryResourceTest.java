@@ -1,6 +1,7 @@
 package org.acme.resource;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -11,6 +12,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
+@TestSecurity(user = "admin", roles = {"admin"})
 class LorryResourceTest {
 
     @Test

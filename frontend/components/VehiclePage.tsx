@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { lorryApi, carApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import type { Vehicle, VehicleRequest } from '@/lib/api';
 import AddVehicleForm from './AddVehicleForm';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
@@ -57,6 +58,7 @@ const emptyFilter = { make: '', model: '', colour: '', year: '', maxMileage: '' 
 export default function VehiclePage({ type, title }: Props) {
   const router = useRouter();
   const api = apis[type];
+  const { isAdmin } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,7 +125,7 @@ export default function VehiclePage({ type, title }: Props) {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>{title}</Typography>
-        {!showForm && (
+        {isAdmin && !showForm && (
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
             Add {addLabel}
           </Button>
@@ -271,14 +273,16 @@ export default function VehiclePage({ type, title }: Props) {
                           <DirectionsCarIcon sx={{ fontSize: 14 }} />
                           <Typography variant="caption">{v.id.slice(0, 8)}…</Typography>
                         </Box>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={e => { e.stopPropagation(); setDeleteTarget(v.id); }}
-                          disabled={deleting === v.id}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {isAdmin && (
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={e => { e.stopPropagation(); setDeleteTarget(v.id); }}
+                            disabled={deleting === v.id}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </CardActions>
                     </Card>
                   </Grid>

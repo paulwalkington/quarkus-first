@@ -1,5 +1,6 @@
 package org.acme.resource;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 
@@ -19,6 +20,7 @@ public class LorryResource {
     LorryService service;
 
     @POST
+    @RolesAllowed("admin")
     public LorryResponse createLorry(LorryRequest lorryRequest) {
         Lorry lorry = service.addLorry(lorryRequest);
         return transformToLorryResponse(lorry);
@@ -26,6 +28,7 @@ public class LorryResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({"admin", "user"})
     public RestResponse<LorryResponse> getLorry(@PathParam("id") String id) {
         Optional<Lorry> lorry = service.getLorry(id);
 
@@ -37,6 +40,7 @@ public class LorryResource {
     }
 
     @GET
+    @RolesAllowed({"admin", "user"})
     public List<LorryResponse> getLorries() {
         List<Lorry> lorries = service.getLorries();
         return lorries.stream().map(this::transformToLorryResponse).toList();
@@ -44,6 +48,7 @@ public class LorryResource {
 
     @GET
     @Path("/search")
+    @RolesAllowed({"admin", "user"})
     public List<LorryResponse> searchLorries(
             @QueryParam("make") String make,
             @QueryParam("model") String model,
@@ -56,6 +61,7 @@ public class LorryResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("admin")
     public RestResponse<LorryResponse> updateLorry(@PathParam("id") String id, LorryRequest lorryRequest) {
         Optional<Lorry> lorry = service.updateLorry(id, lorryRequest);
 
@@ -68,6 +74,7 @@ public class LorryResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("admin")
     public RestResponse<Void> deleteLorry(@PathParam("id") String id) {
         if (!service.deleteLorry(id)) {
             return RestResponse.notFound();

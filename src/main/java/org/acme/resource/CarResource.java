@@ -1,5 +1,6 @@
 package org.acme.resource;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 
@@ -19,6 +20,7 @@ public class CarResource {
     CarService service;
 
     @POST
+    @RolesAllowed("admin")
     public CarResponse createCar(CarRequest carRequest) {
         Car car = service.addCar(carRequest);
         return transformToCarResponse(car);
@@ -26,6 +28,7 @@ public class CarResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({"admin", "user"})
     public RestResponse<CarResponse> getCar(String id) {
         Optional<Car> car = service.getCar(id);
 
@@ -38,6 +41,7 @@ public class CarResource {
     }
 
     @GET
+    @RolesAllowed({"admin", "user"})
     public List<CarResponse> getCars() {
         List<Car> cars = service.getCars();
         return cars.stream().map(this::transformToCarResponse).toList();
@@ -45,6 +49,7 @@ public class CarResource {
 
     @GET
     @Path("/search")
+    @RolesAllowed({"admin", "user"})
     public List<CarResponse> searchCars(
             @QueryParam("make") String make,
             @QueryParam("model") String model,
@@ -57,6 +62,7 @@ public class CarResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("admin")
     public RestResponse<CarResponse> updateCar(String id, CarRequest carRequest) {
         Optional<Car> car = service.updateCar(id, carRequest);
 
@@ -69,6 +75,7 @@ public class CarResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("admin")
     public RestResponse<Void> deleteCar(String id) {
         if (!service.deleteCar(id)) {
             return RestResponse.notFound();

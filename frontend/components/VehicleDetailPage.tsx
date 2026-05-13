@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { lorryApi, carApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import type { Vehicle, VehicleRequest } from '@/lib/api';
 import AddVehicleForm from './AddVehicleForm';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
@@ -74,6 +75,7 @@ interface Props {
 export default function VehicleDetailPage({ type, id }: Props) {
   const router = useRouter();
   const api = apis[type];
+  const { isAdmin } = useAuth();
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -161,24 +163,26 @@ export default function VehicleDetailPage({ type, id }: Props) {
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      onClick={() => setEditing(e => !e)}
-                    >
-                      {editing ? 'Cancel' : 'Edit'}
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => setDeleteDialogOpen(true)}
-                      disabled={deleting}
-                    >
-                      Delete
-                    </Button>
-                  </Box>
+                  {isAdmin && (
+                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={() => setEditing(e => !e)}
+                      >
+                        {editing ? 'Cancel' : 'Edit'}
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => setDeleteDialogOpen(true)}
+                        disabled={deleting}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
               </CardContent>
             </Card>
