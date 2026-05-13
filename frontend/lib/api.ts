@@ -19,6 +19,12 @@ export interface Vehicle {
   mileage: number;
 }
 
+export interface User {
+  id: string;
+  username: string;
+  role: string;
+}
+
 export interface VehicleRequest {
   make: string;
   model: string;
@@ -60,6 +66,10 @@ function buildSearchQuery(params: SearchParams): string {
   if (params.maxMileage) q.set('maxMileage', String(params.maxMileage));
   return q.toString();
 }
+
+export const userApi = {
+  getMe: () => request<User>('/auth/me'),
+};
 
 export async function loginApi(username: string, password: string): Promise<string> {
   const res = await fetch(`${API_BASE}/auth/login`, {

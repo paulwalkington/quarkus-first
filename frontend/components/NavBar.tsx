@@ -47,7 +47,12 @@ export default function NavBar() {
                 fontSize: '0.7rem',
               }}
             />
-            <Typography variant="body2" sx={{ color: 'inherit', opacity: 0.9 }}>
+            <Typography
+              variant="body2"
+              component={Link}
+              href="/account"
+              sx={{ color: 'inherit', opacity: 0.9, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+            >
               {username}
             </Typography>
             <Button color="inherit" size="small" onClick={handleLogout}>
