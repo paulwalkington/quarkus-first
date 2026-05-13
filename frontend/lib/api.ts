@@ -23,6 +23,7 @@ export interface User {
   id: string;
   username: string;
   role: string;
+  profilePicture: string | null;
 }
 
 export interface VehicleRequest {
@@ -69,6 +70,12 @@ function buildSearchQuery(params: SearchParams): string {
 
 export const userApi = {
   getMe: () => request<User>('/auth/me'),
+  uploadPicture: (profilePicture: string) =>
+    request<User>('/auth/me/picture', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profilePicture }),
+    }),
 };
 
 export async function loginApi(username: string, password: string): Promise<string> {

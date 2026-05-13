@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
@@ -15,12 +16,15 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
+import jakarta.transaction.Transactional;
+
 import java.time.Duration;
 import java.util.Set;
 
 import org.acme.repository.UserEntity;
 import org.acme.repository.UserRepository;
 import org.acme.resource.request.LoginRequest;
+import org.acme.resource.request.UpdateProfilePictureRequest;
 import org.acme.resource.response.TokenResponse;
 import org.acme.resource.response.UserResponse;
 
@@ -40,7 +44,23 @@ public class AuthResource {
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(new UserResponse(user.id, user.username, user.role)).build();
+        return Response.ok(new UserResponse(user.id, user.username, user.role, user.profilePicture)).build();
+    }
+
+    @PUT
+    @Path("/me/picture")
+    @RolesAllowed({"admin", "user"})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response updatePicture(@Context SecurityContext securityContext, UpdateProfilePictureRequest request) {
+        String username = securityContext.getUserPrincipal().getName();
+        UserEntity user = userRepository.findByUsername(username);
+        if (user == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        user.profilePicture = request.profilePicture();
+        userRepository.persist(user);
+        return Response.ok(new UserResponse(user.id, user.username, user.role, user.profilePicture)).build();
     }
 
     @POST

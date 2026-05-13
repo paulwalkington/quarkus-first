@@ -21,4 +21,7 @@ public class UserEntity extends PanacheEntityBase {
 
     @Column(nullable = false)
     public String role;
+
+    @Column(name = "profile_picture", columnDefinition = "TEXT")
+    public String profilePicture;
 }

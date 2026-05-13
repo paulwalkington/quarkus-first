@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -10,6 +11,7 @@ import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { userApi, User } from '@/lib/api';
 
@@ -41,12 +43,40 @@ function Field({ icon, label, value, mono = false }: { icon: React.ReactNode; la
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     userApi.getMe()
       .then(setUser)
       .catch(() => setError('Failed to load account details.'));
   }, []);
+
+  function handleAvatarClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      setUploading(true);
+      try {
+        const updated = await userApi.uploadPicture(base64);
+        setUser(updated);
+      } catch {
+        setError('Failed to upload picture.');
+      } finally {
+        setUploading(false);
+        // reset so the same file can be re-selected
+        e.target.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
 
   if (error) {
     return (
@@ -68,10 +98,8 @@ export default function AccountPage() {
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: '80vh', mt: 6, px: 2 }}>
-      <Paper
-        elevation={3}
-        sx={{ width: '100%', maxWidth: 440, borderRadius: 3, overflow: 'hidden' }}
-      >
+      <Paper elevation={3} sx={{ width: '100%', maxWidth: 440, borderRadius: 3, overflow: 'hidden' }}>
+
         {/* Gradient header banner */}
         <Box
           sx={{
@@ -82,21 +110,58 @@ export default function AccountPage() {
           }}
         />
 
-        {/* Avatar — overlaps the banner */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: '-52px', px: 3, pb: 3 }}>
-          <Avatar
-            sx={{
-              width: 96,
-              height: 96,
-              bgcolor: isAdmin ? 'warning.dark' : 'primary.dark',
-              border: '4px solid white',
-              boxShadow: 3,
-              fontSize: 42,
-              fontWeight: 700,
-            }}
-          >
-            {user.username.charAt(0).toUpperCase()}
-          </Avatar>
+
+          {/* Clickable avatar with camera overlay */}
+          <Tooltip title="Change photo" placement="right">
+            <Box
+              onClick={handleAvatarClick}
+              sx={{ position: 'relative', cursor: 'pointer', display: 'inline-flex' }}
+            >
+              <Avatar
+                src={user.profilePicture ?? undefined}
+                sx={{
+                  width: 96,
+                  height: 96,
+                  bgcolor: isAdmin ? 'warning.dark' : 'primary.dark',
+                  border: '4px solid white',
+                  boxShadow: 3,
+                  fontSize: 42,
+                  fontWeight: 700,
+                }}
+              >
+                {!user.profilePicture && user.username.charAt(0).toUpperCase()}
+              </Avatar>
+
+              {/* Camera icon overlay */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  bgcolor: 'rgba(0,0,0,0.45)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: uploading ? 1 : 0,
+                  transition: 'opacity 0.2s',
+                  '&:hover': { opacity: 1 },
+                }}
+              >
+                {uploading
+                  ? <CircularProgress size={28} sx={{ color: 'white' }} />
+                  : <CameraAltIcon sx={{ color: 'white', fontSize: 28 }} />}
+              </Box>
+            </Box>
+          </Tooltip>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
 
           <Typography variant="h5" sx={{ fontWeight: 700, mt: 1.5 }}>
             {user.username}
@@ -118,18 +183,9 @@ export default function AccountPage() {
           <Divider sx={{ width: '100%', mt: 3, mb: 1 }} />
 
           <Box sx={{ width: '100%' }}>
-            <Field
-              icon={<BadgeOutlinedIcon fontSize="small" />}
-              label="USER ID"
-              value={user.id}
-              mono
-            />
+            <Field icon={<BadgeOutlinedIcon fontSize="small" />} label="USER ID" value={user.id} mono />
             <Divider />
-            <Field
-              icon={<PersonOutlinedIcon fontSize="small" />}
-              label="USERNAME"
-              value={user.username}
-            />
+            <Field icon={<PersonOutlinedIcon fontSize="small" />} label="USERNAME" value={user.username} />
             <Divider />
             <Field
               icon={<AdminPanelSettingsOutlinedIcon fontSize="small" />}
