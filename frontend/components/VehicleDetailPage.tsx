@@ -28,6 +28,10 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SpeedIcon from '@mui/icons-material/Speed';
 
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
 const apis = { lorries: lorryApi, cars: carApi };
 
 const COLOUR_SWATCHES: Record<string, string> = {
@@ -42,18 +46,20 @@ const AVATAR_PALETTE = [
   '#26c6da', '#26a69a', '#66bb6a', '#ff7043', '#8d6e63',
 ];
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 function avatarColour(make: string): string {
   const hash = [...make].reduce((h, c) => c.charCodeAt(0) + ((h << 5) - h), 0);
   return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
 }
 
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
-function StatCard({ icon, label, children }: StatCardProps) {
+function StatCard({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
     <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
@@ -67,6 +73,121 @@ function StatCard({ icon, label, children }: StatCardProps) {
   );
 }
 
+function VehicleHeroCard({ vehicle, type, isAdmin, editing, deleting, onToggleEdit, onOpenDelete }: {
+  vehicle: Vehicle;
+  type: 'lorries' | 'cars';
+  isAdmin: boolean;
+  editing: boolean;
+  deleting: boolean;
+  onToggleEdit: () => void;
+  onOpenDelete: () => void;
+}) {
+  const singularLabel = type === 'lorries' ? 'Lorry' : 'Car';
+  const TypeIcon = type === 'lorries' ? LocalShippingIcon : DirectionsCarIcon;
+  const swatchColour = COLOUR_SWATCHES[vehicle.colour.toLowerCase()] ?? '#9e9e9e';
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        mb: 3,
+        borderLeft: `6px solid ${swatchColour}`,
+        background: `linear-gradient(135deg, ${swatchColour}18 0%, transparent 55%)`,
+      }}
+    >
+      <CardContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar sx={{ width: 64, height: 64, fontSize: 26, bgcolor: avatarColour(vehicle.make) }}>
+              {vehicle.make[0]}
+            </Avatar>
+            <Box>
+              <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
+                {vehicle.make}
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
+                {vehicle.model}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, mt: 0.75 }}>
+                <Chip icon={<CalendarTodayIcon />} label={vehicle.year} size="small" variant="outlined" />
+                <Chip icon={<TypeIcon />} label={singularLabel} size="small" variant="outlined" />
+              </Box>
+            </Box>
+          </Box>
+
+          {isAdmin && (
+            <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+              <Button variant="outlined" startIcon={<EditIcon />} onClick={onToggleEdit}>
+                {editing ? 'Cancel' : 'Edit'}
+              </Button>
+              <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={onOpenDelete} disabled={deleting}>
+                Delete
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
+
+function VehicleStats({ vehicle, type }: { vehicle: Vehicle; type: 'lorries' | 'cars' }) {
+  const TypeIcon = type === 'lorries' ? LocalShippingIcon : DirectionsCarIcon;
+  const swatchColour = COLOUR_SWATCHES[vehicle.colour.toLowerCase()] ?? '#9e9e9e';
+
+  return (
+    <Grid container spacing={2}>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <StatCard icon={<DirectionsCarIcon fontSize="small" />} label="Make">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.make}</Typography>
+        </StatCard>
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <StatCard icon={<TypeIcon fontSize="small" />} label="Model">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.model}</Typography>
+        </StatCard>
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <StatCard icon={<CalendarTodayIcon fontSize="small" />} label="Year">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.year}</Typography>
+        </StatCard>
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <StatCard icon={<ColorLensIcon fontSize="small" />} label="Colour">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+            <Box sx={{
+              width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+              bgcolor: swatchColour,
+              border: '2px solid rgba(0,0,0,0.12)',
+              boxShadow: `0 0 0 3px ${swatchColour}30`,
+            }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, textTransform: 'capitalize' }}>
+              {vehicle.colour}
+            </Typography>
+          </Box>
+        </StatCard>
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <StatCard icon={<SpeedIcon fontSize="small" />} label="Mileage">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.mileage.toLocaleString()}</Typography>
+          <Typography variant="caption" color="text.secondary">miles</Typography>
+        </StatCard>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <StatCard icon={<FingerprintIcon fontSize="small" />} label="ID">
+          <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'text.secondary', wordBreak: 'break-all' }}>
+            {vehicle.id}
+          </Typography>
+        </StatCard>
+      </Grid>
+    </Grid>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 interface Props {
   type: 'lorries' | 'cars';
   id: string;
@@ -76,11 +197,12 @@ export default function VehicleDetailPage({ type, id }: Props) {
   const router = useRouter();
   const api = apis[type];
   const { isAdmin } = useAuth();
+
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -90,7 +212,7 @@ export default function VehicleDetailPage({ type, id }: Props) {
       .finally(() => setLoading(false));
   }, [api, id]);
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     setDeleting(true);
     try {
       await api.delete(id);
@@ -101,24 +223,17 @@ export default function VehicleDetailPage({ type, id }: Props) {
     } finally {
       setDeleteDialogOpen(false);
     }
-  };
+  }
 
-  const handleUpdate = async (data: VehicleRequest) => {
+  async function handleUpdate(data: VehicleRequest) {
     const updated = await api.update(id, data);
     setVehicle(updated);
     setEditing(false);
-  };
-
-  const singularLabel = type === 'lorries' ? 'Lorry' : 'Car';
-  const TypeIcon = type === 'lorries' ? LocalShippingIcon : DirectionsCarIcon;
+  }
 
   return (
     <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => router.push(`/${type}`)}
-        sx={{ mb: 3 }}
-      >
+      <Button startIcon={<ArrowBackIcon />} onClick={() => router.push(`/${type}`)} sx={{ mb: 3 }}>
         Back to {type === 'lorries' ? 'Lorries' : 'Cars'}
       </Button>
 
@@ -130,134 +245,38 @@ export default function VehicleDetailPage({ type, id }: Props) {
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      {vehicle && (() => {
-        const swatchColour = COLOUR_SWATCHES[vehicle.colour.toLowerCase()] ?? '#9e9e9e';
-        return (
-          <>
-            {/* Hero card */}
-            <Card
-              variant="outlined"
-              sx={{
-                mb: 3,
-                borderLeft: `6px solid ${swatchColour}`,
-                background: `linear-gradient(135deg, ${swatchColour}18 0%, transparent 55%)`,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ width: 64, height: 64, fontSize: 26, bgcolor: avatarColour(vehicle.make) }}>
-                      {vehicle.make[0]}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1.5 }}>
-                        {vehicle.make}
-                      </Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                        {vehicle.model}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 0.75 }}>
-                        <Chip icon={<CalendarTodayIcon />} label={vehicle.year} size="small" variant="outlined" />
-                        <Chip icon={<TypeIcon />} label={singularLabel} size="small" variant="outlined" />
-                      </Box>
-                    </Box>
-                  </Box>
+      {vehicle && (
+        <>
+          <VehicleHeroCard
+            vehicle={vehicle}
+            type={type}
+            isAdmin={isAdmin}
+            editing={editing}
+            deleting={deleting}
+            onToggleEdit={() => setEditing(e => !e)}
+            onOpenDelete={() => setDeleteDialogOpen(true)}
+          />
 
-                  {isAdmin && (
-                    <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-                      <Button
-                        variant="outlined"
-                        startIcon={<EditIcon />}
-                        onClick={() => setEditing(e => !e)}
-                      >
-                        {editing ? 'Cancel' : 'Edit'}
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => setDeleteDialogOpen(true)}
-                        disabled={deleting}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
+          {editing ? (
+            <AddVehicleForm
+              onSubmit={handleUpdate}
+              onCancel={() => setEditing(false)}
+              initialValues={{ make: vehicle.make, model: vehicle.model, year: vehicle.year, colour: vehicle.colour, mileage: vehicle.mileage }}
+            />
+          ) : (
+            <VehicleStats vehicle={vehicle} type={type} />
+          )}
 
-            {editing && (
-              <AddVehicleForm
-                onSubmit={handleUpdate}
-                onCancel={() => setEditing(false)}
-                initialValues={{ make: vehicle.make, model: vehicle.model, year: vehicle.year, colour: vehicle.colour, mileage: vehicle.mileage }}
-              />
-            )}
-
-            {!editing && (
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <StatCard icon={<DirectionsCarIcon fontSize="small" />} label="Make">
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.make}</Typography>
-                  </StatCard>
-                </Grid>
-
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <StatCard icon={<TypeIcon fontSize="small" />} label="Model">
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.model}</Typography>
-                  </StatCard>
-                </Grid>
-
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <StatCard icon={<CalendarTodayIcon fontSize="small" />} label="Year">
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.year}</Typography>
-                  </StatCard>
-                </Grid>
-
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <StatCard icon={<ColorLensIcon fontSize="small" />} label="Colour">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <Box sx={{
-                        width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                        bgcolor: swatchColour,
-                        border: '2px solid rgba(0,0,0,0.12)',
-                        boxShadow: `0 0 0 3px ${swatchColour}30`,
-                      }} />
-                      <Typography variant="h6" sx={{ fontWeight: 700, textTransform: 'capitalize' }}>
-                        {vehicle.colour}
-                      </Typography>
-                    </Box>
-                  </StatCard>
-                </Grid>
-
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <StatCard icon={<SpeedIcon fontSize="small" />} label="Mileage">
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{vehicle.mileage.toLocaleString()}</Typography>
-                    <Typography variant="caption" color="text.secondary">miles</Typography>
-                  </StatCard>
-                </Grid>
-
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <StatCard icon={<FingerprintIcon fontSize="small" />} label="ID">
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'text.secondary', wordBreak: 'break-all' }}>
-                      {vehicle.id}
-                    </Typography>
-                  </StatCard>
-                </Grid>
-              </Grid>
-            )}
           <ConfirmDeleteDialog
             open={deleteDialogOpen}
-            title={`Delete ${singularLabel}?`}
+            title={`Delete ${type === 'lorries' ? 'Lorry' : 'Car'}?`}
             description={`This will permanently delete the ${vehicle.year} ${vehicle.make} ${vehicle.model}. This action cannot be undone.`}
             onConfirm={handleDelete}
             onCancel={() => setDeleteDialogOpen(false)}
             loading={deleting}
           />
-          </>
-        );
-      })()}
+        </>
+      )}
     </Box>
   );
 }

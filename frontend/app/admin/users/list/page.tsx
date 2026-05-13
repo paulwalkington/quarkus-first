@@ -31,15 +31,148 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import Link from 'next/link';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 interface EditState {
   username: string;
   role: string;
   password: string;
 }
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function UserRow({ user, onEdit, onDelete }: {
+  user: User;
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
+}) {
+  const isAdmin = user.role === 'admin';
+  return (
+    <TableRow hover>
+      <TableCell>
+        <Avatar
+          src={user.profilePicture ?? undefined}
+          sx={{ width: 36, height: 36, bgcolor: isAdmin ? 'warning.dark' : 'primary.dark', fontSize: 16, fontWeight: 700 }}
+        >
+          {!user.profilePicture && user.username.charAt(0).toUpperCase()}
+        </Avatar>
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>{user.username}</Typography>
+      </TableCell>
+      <TableCell>
+        <Chip
+          label={isAdmin ? 'Admin' : 'User'}
+          size="small"
+          sx={{ bgcolor: isAdmin ? 'warning.main' : 'success.main', color: 'white', fontWeight: 700, fontSize: '0.7rem' }}
+        />
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'text.secondary' }}>
+          {user.id}
+        </Typography>
+      </TableCell>
+      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+        <IconButton size="small" onClick={() => onEdit(user)}>
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton size="small" color="error" onClick={() => onDelete(user)}>
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function EditUserDialog({ user, editState, saving, error, onClose, onSave, onChange }: {
+  user: User | null;
+  editState: EditState;
+  saving: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSave: () => void;
+  onChange: (field: keyof EditState, value: string) => void;
+}) {
+  return (
+    <Dialog open={!!user} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>Edit User</DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
+        {error && <Typography color="error" variant="body2">{error}</Typography>}
+        <TextField
+          label="Username"
+          value={editState.username}
+          onChange={e => onChange('username', e.target.value)}
+          autoComplete="off"
+          fullWidth
+        />
+        <FormControl fullWidth>
+          <InputLabel id="edit-role-label">Role</InputLabel>
+          <Select
+            labelId="edit-role-label"
+            value={editState.role}
+            label="Role"
+            onChange={e => onChange('role', e.target.value)}
+          >
+            <MenuItem value="user">User</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="New Password"
+          type="password"
+          value={editState.password}
+          onChange={e => onChange('password', e.target.value)}
+          placeholder="Leave blank to keep current"
+          autoComplete="new-password"
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} disabled={saving}>Cancel</Button>
+        <Button variant="contained" onClick={onSave} disabled={saving || !editState.username.trim()}>
+          {saving ? 'Saving…' : 'Save'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function DeleteUserDialog({ user, deleting, onClose, onDelete }: {
+  user: User | null;
+  deleting: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Dialog open={!!user} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ fontWeight: 700 }}>Delete User</DialogTitle>
+      <DialogContent>
+        <Typography>
+          Are you sure you want to delete <strong>{user?.username}</strong>? This cannot be undone.
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} disabled={deleting}>Cancel</Button>
+        <Button variant="contained" color="error" onClick={onDelete} disabled={deleting}>
+          {deleting ? 'Deleting…' : 'Delete'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 export default function UserListPage() {
   const { isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,18 +208,6 @@ export default function UserListPage() {
     setEditError(null);
   }
 
-  async function handleDelete() {
-    if (!deleteUser) return;
-    setDeleting(true);
-    try {
-      await userApi.delete(deleteUser.id);
-      setUsers(prev => prev.filter(u => u.id !== deleteUser.id));
-      setDeleteUser(null);
-    } finally {
-      setDeleting(false);
-    }
-  }
-
   async function handleSave() {
     if (!editUser) return;
     setSaving(true);
@@ -103,6 +224,18 @@ export default function UserListPage() {
       setEditError('Failed to save changes. The username may already be taken.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteUser) return;
+    setDeleting(true);
+    try {
+      await userApi.delete(deleteUser.id);
+      setUsers(prev => prev.filter(u => u.id !== deleteUser.id));
+      setDeleteUser(null);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -140,44 +273,9 @@ export default function UserListPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map(user => {
-                const admin = user.role === 'admin';
-                return (
-                  <TableRow key={user.id} hover>
-                    <TableCell>
-                      <Avatar
-                        src={user.profilePicture ?? undefined}
-                        sx={{ width: 36, height: 36, bgcolor: admin ? 'warning.dark' : 'primary.dark', fontSize: 16, fontWeight: 700 }}
-                      >
-                        {!user.profilePicture && user.username.charAt(0).toUpperCase()}
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>{user.username}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={admin ? 'Admin' : 'User'}
-                        size="small"
-                        sx={{ bgcolor: admin ? 'warning.main' : 'success.main', color: 'white', fontWeight: 700, fontSize: '0.7rem' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'text.secondary' }}>
-                        {user.id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                      <IconButton size="small" onClick={() => openEdit(user)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => setDeleteUser(user)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {users.map(user => (
+                <UserRow key={user.id} user={user} onEdit={openEdit} onDelete={setDeleteUser} />
+              ))}
               {users.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
@@ -190,65 +288,22 @@ export default function UserListPage() {
         </TableContainer>
       )}
 
-      <Dialog open={!!editUser} onClose={closeEdit} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Edit User</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-          {editError && <Typography color="error" variant="body2">{editError}</Typography>}
-          <TextField
-            label="Username"
-            value={editState.username}
-            onChange={e => setEditState(s => ({ ...s, username: e.target.value }))}
-            autoComplete="off"
-            fullWidth
-          />
-          <FormControl fullWidth>
-            <InputLabel id="edit-role-label">Role</InputLabel>
-            <Select
-              labelId="edit-role-label"
-              value={editState.role}
-              label="Role"
-              onChange={e => setEditState(s => ({ ...s, role: e.target.value }))}
-            >
-              <MenuItem value="user">User</MenuItem>
-              <MenuItem value="admin">Admin</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="New Password"
-            type="password"
-            value={editState.password}
-            onChange={e => setEditState(s => ({ ...s, password: e.target.value }))}
-            placeholder="Leave blank to keep current"
-            autoComplete="new-password"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeEdit} disabled={saving}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={saving || !editState.username.trim()}
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <EditUserDialog
+        user={editUser}
+        editState={editState}
+        saving={saving}
+        error={editError}
+        onClose={closeEdit}
+        onSave={handleSave}
+        onChange={(field, value) => setEditState(s => ({ ...s, [field]: value }))}
+      />
 
-      <Dialog open={!!deleteUser} onClose={() => setDeleteUser(null)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete User</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete <strong>{deleteUser?.username}</strong>? This cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDeleteUser(null)} disabled={deleting}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting}>
-            {deleting ? 'Deleting…' : 'Delete'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteUserDialog
+        user={deleteUser}
+        deleting={deleting}
+        onClose={() => setDeleteUser(null)}
+        onDelete={handleDelete}
+      />
     </Box>
   );
 }
