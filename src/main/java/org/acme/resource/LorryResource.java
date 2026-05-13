@@ -19,11 +19,14 @@ public class LorryResource {
     @Inject
     LorryService service;
 
+    @Inject
+    LorryResponseTransformer transformer;
+
     @POST
     @RolesAllowed("admin")
     public LorryResponse createLorry(LorryRequest lorryRequest) {
         Lorry lorry = service.addLorry(lorryRequest);
-        return transformToLorryResponse(lorry);
+        return transformer.toLorryResponse(lorry);
     }
 
     @GET
@@ -36,14 +39,14 @@ public class LorryResource {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformToLorryResponse(lorry.get()));
+        return RestResponse.ok(transformer.toLorryResponse(lorry.get()));
     }
 
     @GET
     @RolesAllowed({"admin", "user"})
     public List<LorryResponse> getLorries() {
         List<Lorry> lorries = service.getLorries();
-        return lorries.stream().map(this::transformToLorryResponse).toList();
+        return lorries.stream().map(transformer::toLorryResponse).toList();
     }
 
     @GET
@@ -56,7 +59,7 @@ public class LorryResource {
             @QueryParam("colour") String colour,
             @QueryParam("maxMileage") Integer maxMileage) {
         return service.searchLorries(make, model, year, colour, maxMileage)
-                .stream().map(this::transformToLorryResponse).toList();
+                .stream().map(transformer::toLorryResponse).toList();
     }
 
     @PUT
@@ -69,7 +72,7 @@ public class LorryResource {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformToLorryResponse(lorry.get()));
+        return RestResponse.ok(transformer.toLorryResponse(lorry.get()));
     }
 
     @DELETE
@@ -80,15 +83,5 @@ public class LorryResource {
             return RestResponse.notFound();
         }
         return RestResponse.noContent();
-    }
-
-    private LorryResponse transformToLorryResponse(Lorry lorry) {
-        return new LorryResponse(
-                lorry.id(),
-                lorry.make(),
-                lorry.model(),
-                lorry.year(),
-                lorry.colour(),
-                lorry.mileage());
     }
 }

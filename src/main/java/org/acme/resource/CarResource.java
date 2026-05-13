@@ -19,11 +19,14 @@ public class CarResource {
     @Inject
     CarService service;
 
+    @Inject
+    CarResponseTransformer transformer;
+
     @POST
     @RolesAllowed("admin")
     public CarResponse createCar(CarRequest carRequest) {
         Car car = service.addCar(carRequest);
-        return transformToCarResponse(car);
+        return transformer.toCarResponse(car);
     }
 
     @GET
@@ -36,7 +39,7 @@ public class CarResource {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformToCarResponse(car.get()));
+        return RestResponse.ok(transformer.toCarResponse(car.get()));
 
     }
 
@@ -44,7 +47,7 @@ public class CarResource {
     @RolesAllowed({"admin", "user"})
     public List<CarResponse> getCars() {
         List<Car> cars = service.getCars();
-        return cars.stream().map(this::transformToCarResponse).toList();
+        return cars.stream().map(transformer::toCarResponse).toList();
     }
 
     @GET
@@ -57,7 +60,7 @@ public class CarResource {
             @QueryParam("colour") String colour,
             @QueryParam("maxMileage") Integer maxMileage) {
         return service.searchCars(make, model, year, colour, maxMileage)
-                .stream().map(this::transformToCarResponse).toList();
+                .stream().map(transformer::toCarResponse).toList();
     }
 
     @PUT
@@ -70,7 +73,7 @@ public class CarResource {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformToCarResponse(car.get()));
+        return RestResponse.ok(transformer.toCarResponse(car.get()));
     }
 
     @DELETE
@@ -83,14 +86,5 @@ public class CarResource {
         return RestResponse.noContent();
     }
 
-    private CarResponse transformToCarResponse(Car car) {
-        return new CarResponse(
-                car.id(),
-                car.make(),
-                car.model(),
-                car.year(),
-                car.colour(),
-                car.mileage());
-    }
-
 }
+
