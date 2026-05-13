@@ -1,6 +1,5 @@
 package org.acme.resource;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -16,51 +15,59 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
-import jakarta.transaction.Transactional;
-
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
 
-import org.acme.repository.UserEntity;
-import org.acme.repository.UserRepository;
+import org.acme.domain.User;
+import org.acme.resource.request.CreateUserRequest;
 import org.acme.resource.request.LoginRequest;
 import org.acme.resource.request.UpdateProfilePictureRequest;
 import org.acme.resource.response.TokenResponse;
-import org.acme.resource.response.UserResponse;
+import org.acme.service.UserService;
 
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
-public class AuthResource {
+public class UserResource {
 
     @Inject
-    UserRepository userRepository;
+    UserService userService;
+
+    @Inject
+    UserResponseTransformer transformer;
 
     @GET
     @Path("/me")
     @RolesAllowed({"admin", "user"})
     public Response me(@Context SecurityContext securityContext) {
         String username = securityContext.getUserPrincipal().getName();
-        UserEntity user = userRepository.findByUsername(username);
-        if (user == null) {
+        Optional<User> user = userService.getUserByUsername(username);
+        if (user.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(new UserResponse(user.id, user.username, user.role, user.profilePicture)).build();
+        return Response.ok(transformer.toUserResponse(user.get())).build();
     }
 
     @PUT
     @Path("/me/picture")
     @RolesAllowed({"admin", "user"})
     @Consumes(MediaType.APPLICATION_JSON)
-    @Transactional
     public Response updatePicture(@Context SecurityContext securityContext, UpdateProfilePictureRequest request) {
         String username = securityContext.getUserPrincipal().getName();
-        UserEntity user = userRepository.findByUsername(username);
-        if (user == null) {
+        Optional<User> user = userService.updateProfilePicture(username, request.profilePicture());
+        if (user.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        user.profilePicture = request.profilePicture();
-        userRepository.persist(user);
-        return Response.ok(new UserResponse(user.id, user.username, user.role, user.profilePicture)).build();
+        return Response.ok(transformer.toUserResponse(user.get())).build();
+    }
+
+    @POST
+    @Path("/register")
+    @RolesAllowed("admin")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response register(CreateUserRequest request) {
+        User user = userService.addUser(request);
+        return Response.ok(transformer.toUserResponse(user)).build();
     }
 
     @POST
@@ -68,16 +75,17 @@ public class AuthResource {
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(LoginRequest request) {
-        UserEntity user = userRepository.findByUsername(request.username());
-        if (user == null || !BCrypt.verifyer().verify(request.password().toCharArray(), user.password).verified) {
+        Optional<User> user = userService.findUser(request.username(), request.password());
+        if (user.isEmpty()) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         String token = Jwt.issuer("https://quarkus-getting-started.io")
-                .upn(user.username)
-                .subject(user.username)
-                .groups(Set.of(user.role))
+                .upn(user.get().username())
+                .subject(user.get().username())
+                .groups(Set.of(user.get().role()))
                 .expiresIn(Duration.ofHours(24))
                 .sign();
         return Response.ok(new TokenResponse(token)).build();
     }
+
 }
