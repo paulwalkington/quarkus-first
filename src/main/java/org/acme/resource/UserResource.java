@@ -25,6 +25,7 @@ import java.util.Set;
 import org.acme.domain.User;
 import org.acme.resource.request.CreateUserRequest;
 import org.acme.resource.request.LoginRequest;
+import org.acme.resource.request.UpdatePasswordRequest;
 import org.acme.resource.request.UpdateProfilePictureRequest;
 import org.acme.resource.request.UpdateUserRequest;
 import org.acme.resource.response.TokenResponse;
@@ -62,6 +63,18 @@ public class UserResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         return Response.ok(transformer.toUserResponse(user.get())).build();
+    }
+
+    @PUT
+    @Path("/me/password")
+    @RolesAllowed({"admin", "user"})
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updatePassword(@Context SecurityContext securityContext, UpdatePasswordRequest request) {
+        String username = securityContext.getUserPrincipal().getName();
+        boolean updated = userService.updatePassword(username, request);
+        return updated
+                ? Response.noContent().build()
+                : Response.status(Response.Status.UNAUTHORIZED).build();
     }
 
     @PUT

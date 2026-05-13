@@ -9,6 +9,7 @@ import org.acme.domain.User;
 import org.acme.repository.UserEntity;
 import org.acme.repository.UserRepository;
 import org.acme.resource.request.CreateUserRequest;
+import org.acme.resource.request.UpdatePasswordRequest;
 import org.acme.resource.request.UpdateUserRequest;
 
 import java.util.List;
@@ -62,6 +63,17 @@ public class UserService {
         }
         userRepository.persist(entity);
         return Optional.of(entity.toDomain());
+    }
+
+    @Transactional
+    public boolean updatePassword(String username, UpdatePasswordRequest request) {
+        UserEntity entity = userRepository.findByUsername(username);
+        if (entity == null || !BCrypt.verifyer().verify(request.currentPassword().toCharArray(), entity.password).verified) {
+            return false;
+        }
+        entity.password = BCrypt.withDefaults().hashToString(12, request.newPassword().toCharArray());
+        userRepository.persist(entity);
+        return true;
     }
 
     @Transactional

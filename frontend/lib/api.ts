@@ -82,6 +82,12 @@ export const userApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profilePicture }),
     }),
+  updatePassword: (currentPassword: string, newPassword: string) =>
+    request<void>('/auth/me/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
   register: (data: CreateUserRequest) =>
     request<User>('/auth/register', {
       method: 'POST',
