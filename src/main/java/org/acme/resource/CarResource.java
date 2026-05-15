@@ -17,37 +17,37 @@ import java.util.Optional;
 public class CarResource {
 
     @Inject
-    CarService service;
+    CarService carService;
 
     @Inject
-    CarResponseTransformer transformer;
+    CarResponseTransformer carResponseTransformer;
 
     @POST
     @RolesAllowed("admin")
     public CarResponse createCar(CarRequest carRequest) {
-        Car car = service.addCar(carRequest);
-        return transformer.toCarResponse(car);
+        Car car = carService.addCar(carRequest);
+        return carResponseTransformer.toCarResponse(car);
     }
 
     @GET
     @Path("/{id}")
     @RolesAllowed({"admin", "user"})
     public RestResponse<CarResponse> getCar(String id) {
-        Optional<Car> car = service.getCar(id);
+        Optional<Car> car = carService.getCar(id);
 
         if (car.isEmpty()) {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformer.toCarResponse(car.get()));
+        return RestResponse.ok(carResponseTransformer.toCarResponse(car.get()));
 
     }
 
     @GET
     @RolesAllowed({"admin", "user"})
     public List<CarResponse> getCars() {
-        List<Car> cars = service.getCars();
-        return cars.stream().map(transformer::toCarResponse).toList();
+        List<Car> cars = carService.getCars();
+        return cars.stream().map(carResponseTransformer::toCarResponse).toList();
     }
 
     @GET
@@ -59,28 +59,28 @@ public class CarResource {
             @QueryParam("year") Integer year,
             @QueryParam("colour") String colour,
             @QueryParam("maxMileage") Integer maxMileage) {
-        return service.searchCars(make, model, year, colour, maxMileage)
-                .stream().map(transformer::toCarResponse).toList();
+        return carService.searchCars(make, model, year, colour, maxMileage)
+                .stream().map(carResponseTransformer::toCarResponse).toList();
     }
 
     @PUT
     @Path("/{id}")
     @RolesAllowed("admin")
     public RestResponse<CarResponse> updateCar(String id, CarRequest carRequest) {
-        Optional<Car> car = service.updateCar(id, carRequest);
+        Optional<Car> car = carService.updateCar(id, carRequest);
 
         if (car.isEmpty()) {
             return RestResponse.notFound();
         }
 
-        return RestResponse.ok(transformer.toCarResponse(car.get()));
+        return RestResponse.ok(carResponseTransformer.toCarResponse(car.get()));
     }
 
     @DELETE
     @Path("/{id}")
     @RolesAllowed("admin")
     public RestResponse<Void> deleteCar(String id) {
-        if (!service.deleteCar(id)) {
+        if (!carService.deleteCar(id)) {
             return RestResponse.notFound();
         }
         return RestResponse.noContent();
