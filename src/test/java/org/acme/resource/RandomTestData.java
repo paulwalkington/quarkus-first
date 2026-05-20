@@ -3,13 +3,13 @@ package org.acme.resource;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-class RandomTestData {
+public class RandomTestData {
 
     static String aString() {
         return UUID.randomUUID().toString();
     }
 
-    static String anId() {
+    public static String anId() {
         return aString();
     }
 

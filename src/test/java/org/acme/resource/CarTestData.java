@@ -7,9 +7,9 @@ import static org.acme.resource.RandomTestData.aString;
 import static org.acme.resource.RandomTestData.aYear;
 import static org.acme.resource.RandomTestData.anId;
 
-class CarTestData {
+public class CarTestData {
 
-    static Car aCar() {
+    public static Car aCar() {
         return new Car(anId(), aString(), aString(), aYear(), aString(), aMileage());
     }
 

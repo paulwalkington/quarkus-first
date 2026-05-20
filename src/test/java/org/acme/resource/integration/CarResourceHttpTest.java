@@ -1,4 +1,4 @@
-package org.acme.resource;
+package org.acme.resource.integration;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
@@ -6,6 +6,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.acme.domain.Car;
+import org.acme.resource.CarResource;
 import org.acme.service.CarService;
 import org.junit.jupiter.api.Test;
 

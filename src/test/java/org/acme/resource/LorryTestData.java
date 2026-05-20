@@ -7,9 +7,9 @@ import static org.acme.resource.RandomTestData.aString;
 import static org.acme.resource.RandomTestData.aYear;
 import static org.acme.resource.RandomTestData.anId;
 
-class LorryTestData {
+public class LorryTestData {
 
-    static Lorry aLorry() {
+    public static Lorry aLorry() {
         return new Lorry(anId(), aString(), aString(), aYear(), aString(), aMileage());
     }
 
