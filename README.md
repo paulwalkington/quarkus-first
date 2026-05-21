@@ -1,67 +1,197 @@
-# getting-started
+# Getting Started
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A full-stack vehicle management application. The backend is a Quarkus REST API backed by PostgreSQL. The frontend is a Next.js application. Both are containerised and deployed to AWS ECS Fargate behind CloudFront.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Architecture
 
-## Running the application in dev mode
+```
+CloudFront
+    └── ALB
+         ├── /api/*  →  Backend (ECS Fargate, port 8080)
+         └── /*      →  Frontend (ECS Fargate, port 3000)
 
-You can run your application in dev mode that enables live coding using:
+Aurora PostgreSQL (VPC-only, accessed by backend tasks)
+```
 
-```shell script
+Authentication is JWT-based with two roles: `admin` and `user`. Default credentials seeded by Flyway migrations are `admin`/`admin123` and `user`/`user123`.
+
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Java 21
+- Node.js 22
+- Docker
+
+### 1. Start the database
+
+```bash
+docker compose up -d
+```
+
+This starts a PostgreSQL 16 container on port 5432 with username `quarkus`, password `quarkus`, database `quarkus`. Data is persisted to a Docker volume (`postgres-data`).
+
+### 2. Start the backend
+
+```bash
 ./gradlew quarkusDev
 ```
 
-> **_NOTE:_** Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+The API is available at `http://localhost:8080/api`. Flyway migrations run automatically on startup. Live reload is enabled — changes to Java files take effect without restarting.
 
-## Building and running with Docker
+The Quarkus Dev UI is available at `http://localhost:8080/q/dev/`.
 
-### JVM mode
+### 3. Start the frontend
 
-```shell script
-./gradlew build
-docker build -f src/main/docker/Dockerfile.jvm -t quarkus/getting-started-jvm .
-docker run -i --rm -p 8080:8080 quarkus/getting-started-jvm
+```bash
+cd frontend
+npm install
+NEXT_PUBLIC_API_URL=http://localhost:8080 npm run dev
 ```
 
-### build a native image
+The frontend is available at `http://localhost:3000`.
 
-```shell script
+---
+
+## Running Tests
+
+```bash
+./gradlew test
+```
+
+Tests use an H2 in-memory database. Flyway migrations run against H2 to build the schema before each test run. No running database is required.
+
+---
+
+## Building Docker Images
+
+### Backend (native)
+
+```bash
 ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-  docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
+docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
 ```
 
-### run with docker
+The container build flag compiles the native binary inside a Docker container so GraalVM does not need to be installed locally.
 
-```shell script
-docker run -d --rm -p 8080:8080 --name qs quarkus/getting-started:1.0.0-SNAPSHOT
+### Frontend
+
+```bash
+cd frontend
+docker build -t getting-started-frontend:latest .
 ```
 
-## push docker image to aws
+---
 
-```shell script
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 331374384642.dkr.ecr.us-east-1.amazonaws.com
+## Deploying to AWS with Terraform
+
+### Prerequisites
+
+- Terraform >= 1.6
+- AWS CLI configured with credentials that have permissions to create ECS, ECR, RDS, ALB, CloudFront, IAM, and Secrets Manager resources
+
+### First-time setup
+
+```bash
+cd terraform
+terraform init
+terraform apply
 ```
 
-```shell script
+Note the outputs — you will need the ECR URLs to push images.
+
+```bash
+terraform output ecr_repository_url           # backend ECR
+terraform output frontend_ecr_repository_url  # frontend ECR
+terraform output cloudfront_url               # public entry point
+```
+
+### Push images to ECR
+
+Authenticate Docker with ECR, then push both images. Replace `<account-id>` with your AWS account ID.
+
+```bash
+aws ecr get-login-password --region us-east-1 \
+  | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+```
+
+**Backend:**
+
+```bash
 ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-  docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
+docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
+docker tag getting-started:latest <backend-ecr-url>:latest
+docker push <backend-ecr-url>:latest
 ```
 
-```shell script
-docker tag getting-started:latest 331374384642.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+**Frontend:**
+
+```bash
+cd frontend
+docker build -t getting-started-frontend:latest .
+docker tag getting-started-frontend:latest <frontend-ecr-url>:latest
+docker push <frontend-ecr-url>:latest
 ```
 
-```shell script
-docker push 331374384642.dkr.ecr.us-east-1.amazonaws.com/getting-started:latest
+### Force a new deployment
+
+After pushing updated images, force ECS to pull them:
+
+```bash
+aws ecs update-service \
+  --cluster getting-started \
+  --service $(terraform output -raw service_name) \
+  --force-new-deployment \
+  --region us-east-1
+
+aws ecs update-service \
+  --cluster getting-started \
+  --service $(terraform output -raw frontend_service_name) \
+  --force-new-deployment \
+  --region us-east-1
 ```
 
+### Terraform variables
 
+| Variable | Default | Description |
+|---|---|---|
+| `region` | `us-east-1` | AWS region |
+| `project_name` | `getting-started` | Prefix for resource names |
+| `image_tag` | `latest` | Backend image tag in ECR |
+| `frontend_image_tag` | `latest` | Frontend image tag in ECR |
+| `desired_count` | `1` | Number of running tasks per service |
+| `task_cpu` | `256` | Fargate CPU units |
+| `task_memory` | `512` | Fargate memory (MB) |
 
-### Notes
+Override any variable at apply time:
 
-quarkus
-https://quarkus.io/guides/rest#declaring-endpoints-uri-mapping
+```bash
+terraform apply -var="desired_count=2"
+```
 
-rest easy
-https://docs.resteasy.dev/7.0/userguide/resteasy-reference-guide.pdf
+### Tear down
+
+```bash
+terraform destroy
+```
+
+---
+
+## Project Structure
+
+```
+.
+├── src/                        # Quarkus backend
+│   ├── main/java/org/acme/
+│   │   ├── domain/             # Domain records (Car, Lorry, User)
+│   │   ├── repository/         # JPA entities and Panache repositories
+│   │   ├── service/            # Business logic
+│   │   └── resource/           # REST endpoints
+│   └── main/resources/
+│       └── db/migration/       # Flyway SQL migrations
+├── frontend/                   # Next.js frontend
+├── terraform/                  # AWS infrastructure
+└── docker-compose.yml          # Local PostgreSQL
+```
