@@ -11,14 +11,39 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.acme.resource.CarRequestTestData.aCarRequest;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
 @TestHTTPEndpoint(CarResource.class)
-@TestSecurity(user = "admin", roles = "admin")
 class CarResourceE2ETest {
 
     @Test
+    @TestSecurity(user = "admin", roles = "admin")
+    void getCars_returnsCarsIncludingCreatedCar() {
+        CarRequest request = aCarRequest();
+
+        String id = given()
+            .contentType(ContentType.JSON)
+            .body(request)
+        .when()
+            .post()
+        .then()
+            .statusCode(200)
+            .extract().path("id");
+
+        given()
+        .when()
+            .get()
+        .then()
+            .statusCode(200)
+            .body("id", hasItem(id))
+            .body("make", hasItem(request.make()))
+            .body("model", hasItem(request.model()));
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = "admin")
     void createCar_persistsCarAndCanBeRetrieved() {
         CarRequest request = aCarRequest();
 

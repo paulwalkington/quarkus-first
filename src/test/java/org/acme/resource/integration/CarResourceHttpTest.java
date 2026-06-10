@@ -4,6 +4,8 @@ import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.oidc.Claim;
+import io.quarkus.test.security.oidc.OidcSecurity;
 import io.restassured.http.ContentType;
 import org.acme.domain.Car;
 import org.acme.resource.CarResource;
@@ -31,6 +33,13 @@ class CarResourceHttpTest {
     CarService service;
 
     // createCar
+
+//    @OidcSecurity(claims = {
+//            @Claim(key = "exp", value = "2"),
+//            @Claim(key = "iat", value = "1")
+//    })
+
+
 
     @Test
     @TestSecurity(user = "admin", roles = "admin")
