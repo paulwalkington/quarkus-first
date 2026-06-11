@@ -4,14 +4,14 @@ import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.security.TestSecurity;
-import io.quarkus.test.security.oidc.Claim;
-import io.quarkus.test.security.oidc.OidcSecurity;
 import io.restassured.http.ContentType;
+import io.smallrye.jwt.build.Jwt;
 import org.acme.domain.Car;
 import org.acme.resource.CarResource;
 import org.acme.service.CarService;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,11 +34,23 @@ class CarResourceHttpTest {
 
     // createCar
 
-//    @OidcSecurity(claims = {
-//            @Claim(key = "exp", value = "2"),
-//            @Claim(key = "iat", value = "1")
-//    })
+    @Test
+    void createCar_whenTokenExpired_returns401() {
+        String expiredToken = Jwt.issuer("https://quarkus-getting-started.io")
+            .upn("admin")
+            .groups("admin")
+            .expiresAt(Instant.now().minusSeconds(3600))
+            .sign();
 
+        given()
+            .contentType(ContentType.JSON)
+            .body(aCarRequest())
+            .header("Authorization", "Bearer " + expiredToken)
+        .when()
+            .post()
+        .then()
+            .statusCode(401);
+    }
 
 
     @Test
