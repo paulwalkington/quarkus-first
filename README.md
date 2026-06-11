@@ -70,8 +70,7 @@ Tests use an H2 in-memory database. Flyway migrations run against H2 to build th
 ### Backend (native)
 
 ```bash
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-docker build -f src/main/docker/Dockerfile.native -t getting-started:latest .
+./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true -Dquarkus.package.jar.enabled=false
 ```
 
 The container build flag compiles the native binary inside a Docker container so GraalVM does not need to be installed locally.
